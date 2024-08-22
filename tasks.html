@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Claiming System</title>
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Montserrat:900|Raleway:400,400i,700,700i);
+        /* Reset and font */
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+        html {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            --bgColorMenu: #f5fbff;
+            --bgColorItem: black;
+            --duration: .7s;
+        }
+        /* Your existing CSS here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        :root {
+            --clr: #222327;
+            --bar-bg: #5161FF;
+            --bubble-bg: white;
+            --icon-color: white;
+            --text-color: white;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #DCDFFF;
+            align-items: center; /* Centering horizontally */
+        }
+
+        .menu {
+            margin: 0;
+            display: flex;
+            height: 10%;
+            width: 100%;
+            font-size: 1.5em;
+            padding: 0 1.85em;
+            position: fixed;
+            bottom: 0;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bgColorMenu);
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu__item {
+            all: unset;
+            flex-grow: 1;
+            z-index: 100;
+            display: flex;
+            cursor: pointer;
+            position: relative;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0.5em 0 0.5em;
+            transition: transform var(--timeOut, var(--duration));
+        }
+
+        .menu__item::before {
+            content: "";
+            z-index: -1;
+            width: 4.2em;
+            height: 4.2em;
+            border-radius: 50%;
+            position: absolute;
+            transform: scale(0);
+            transition: background-color var(--fduration), transform var (--duration);
+        }
+
+        .menu__item.active {
+            transform: translate3d(0, -0.8em, 0);
+        }
+
+        .menu__item.active::before {
+            transform: scale(1);
+            background-color: var(--bgColorItem);
+        }
+
+        .icon {
+            width: 2.6em;
+            height: 2.6em;
+            stroke: black;
+            fill: transparent;
+            stroke-width: 1pt;
+            stroke-miterlimit: 10;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 400;
+        }
+
+        .menu__item.active .icon {
+            animation: strok 1.5s reverse;
+        }
+
+        .menu__label {
+            display: none;
+            font-size: 0.8em;
+            color: black;
+            text-align: center;
+            position: absolute;
+            bottom: -2.0em; /* Adjust this value to position the text at the bottom of the bar */
+             font-family: 'Poppins', sans-serif;
+        }
+
+        .menu__item.active .menu__label {
+            display: block;
+        }
+
+        @keyframes strok {
+            100% {
+                stroke-dashoffset: 400;
+            }
+        }
+
+
+
+        .svg-container {
+            width: 0;
+            height: 0;
+        }
+
+        @media screen and (max-width: 50em) {
+            .menu {
+                font-size: .8em;
+            }
+        }
+
+
+        main {
+            display: block;
+            margin: 0 auto;
+            max-width: 40rem;
+            padding: 1rem;
+        }
+
+        .category {
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: #f1f1f1;
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .category-content {
+            display: none;
+            padding: 1rem;
+        }
+
+        ol.gradient-list {
+            width: 100%;
+            counter-reset: gradient-counter;
+            list-style: none;
+            margin: 1.75rem 0;
+            padding-left: 1rem;
+        }
+        ol.gradient-list > li {
+            width: 100%;
+            background: white;
+            border-radius: 0 0.5rem 0.5rem 0.5rem;
+            counter-increment: gradient-counter;
+            margin-top: 1rem;
+            min-height: 3rem;
+            padding: 1rem 1rem 1rem 3rem;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        ol.gradient-list > li::before {
+            width: 100%;
+            background: linear-gradient(135deg, #83e4e2 0%, #a2ed56 100%);
+            border-radius: 1rem 1rem 0 1rem;
+            content: counter(gradient-counter);
+            color: #1d1f20;
+            display: flex;
+            font: 900 1.5em/1 'Montserrat';
+            justify-content: flex-end;
+            padding: 0.125em 0.25em;
+            position: absolute;
+            top: -1rem;
+            left: -1rem;
+            height: 3rem;
+            width: 3rem;
+        }
+
+        .btn {
+            display: grid;
+            place-items: center;
+            background: #e3edf7;
+            padding: 1.4em;
+            border-radius: 10px;
+            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15),
+                        -6px -6px 10px -1px rgba(255,255,255,0.7);
+            border: 1px solid rgba(0,0,0,0);
+            cursor: pointer;
+            position: relative;
+            text-decoration: none; /* Prevents underline */
+        }
+
+        .btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .btn:hover {
+            box-shadow: inset 4px 4px 6px -1px rgba(0,0,0,0.2),
+                        inset -4px -4px 6px -1px rgba(255,255,255,0.7),
+                        -0.5px -0.5px 0px rgba(255,255,255,1),
+                        0.5px 0.5px 0px rgba(0,0,0,0.15),
+                        0px 12px 10px -10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            transform: translateY(0.5em);
+        }
+
+        .btn svg {
+            transition: transform 0.5s;
+        }
+
+        .btn:hover svg {
+            transform: scale(0.9);
+            fill: #333333;
+        }
+
+        .timer {
+            font-size: 1rem;
+            color: #0092E4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .reward {
+            font-size: 1rem;
+            color: #0092E4;
+        }
+
+        .claim-btn {
+            font-size: 1rem;
+            color: #0092E4;
+            cursor: pointer;
+            border: none;
+            background: #e3edf7;
+            padding: 1em;
+            border-radius: 10px;
+            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15),
+                        -6px -6px 10px -1px rgba(255,255,255,0.7);
+            transition: background-color 0.3s;
+        }
+
+        .claim-btn:hover {
+            background-color: #c0d9f7;
+        }
+
+        .claim-text {
+            font-size: 1rem;
+            color: #0092E4;
+            cursor: pointer;
+        }
+        .claimed {
+            background-color: #d4edda; /* Light green background for claimed */
+            color: #155724; /* Dark green text */
+            border: 1px solid #c3e6cb; /* Border color matching the background */
+            cursor: not-allowed; /* Show a not-allowed cursor */
+            pointer-events: none; /* Disable clicks */
+        }
+
+        .claimed svg {
+            fill: #4CAF50; /* Green tick mark color */
+        }
+
+        .claim-btn {
+            /* Style for the claim button */
+        }
+
+        .claim-btn.hidden {
+            display: none; /* Hide the button if not needed */
+        }
+       
+
+          
+        /* Existing styles */
+
+        /* Base styles */
+        .category-header {
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b); /* Gradient background */
+            color: white; /* Text color */
+            padding: 1.5rem 2rem; /* Increased padding for a larger header */
+            border-radius: 12px; /* Rounded corners */
+            margin: 0.75rem 0; /* Space between headers */
+            font-size: 1.2rem; /* Larger text */
+            font-weight: bold;
+            text-align: center;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        }
+
+        /* Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .category-header {
+                font-size: 1rem; /* Smaller font on smaller screens */
+                padding: 1rem; /* Adjust padding */
+            }
+        }
+
+        /* Hover and Active State Animation */
+        .category-header:hover {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4); /* Lighter gradient on hover */
+            transform: scale(1.03); /* Slightly enlarge the header */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+        }
+
+        /* Active/Expanded State Animation */
+        .category-header.active {
+            background: linear-gradient(135deg, #00c6ff, #0072ff); /* Different gradient when active */
+            transform: scale(1.05); /* Further enlarge the header */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+        }
+
+
+                .category-content {
+                    display: none;
+                    padding: 0 1rem;
+                }
+
+                .category-content.show {
+                    display: block;
+                }
+            </style>
+        </head>
+        <body>
+            <main style="width: 100%;">
+                <div id="category-container">
+                    <!-- Categories and tasks will be dynamically inserted here -->
+                </div>
+            </main>
+
+            <menu class="menu">
+                    <a id="home-link" class="menu__item" style="--bgColorItem: #d6cbd3;" href="/home">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M3.8,6.6h16.4"/>
+                        <path d="M20.2,12.1H3.8"/>
+                        <path d="M3.8,17.5h16.4"/>
+                    </svg>
+                    <span class="menu__label">Home</span>
+                </a>
+                <a class="menu__item" style="--bgColorItem: #f54888;" href="/frens">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M6.7,4.8h10.7c0.3,0,0.6,0.2,0.7,0.5l2.8,7.3c0,0.1,0,0.2,0,0.3v5.6c0,0.4-0.4,0.8-0.8,0.8H3.8 C3.4,19.3,3,19,3,18.5v-5.6c0-0.1,0-0.2,0.1-0.3L6,5.3C6.1,5,6.4,4.8,6.7,4.8z"/>
+                        <path d="M3.4,12.9H8l1.6,2.8h4.9l1.5-2.8h4.6"/>
+                    </svg>
+                    <span class="menu__label">Referrals</span>
+                </a>
+                <a id="task-link" class="menu__item active" style="--bgColorItem: #4343f5;" href="#">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M3.4,11.9l8.8,4.4l8.4-4.4"/>
+                        <path d="M3.4,16.2l8.8,4.5l8.4-4.5"/>
+                        <path d="M3.7,7.8l8.6-4.5l8,4.5l-8,4.3L3.7,7.8z"/>
+                    </svg>
+                    <span class="menu__label">Tasks</span>
+                </a>
+                <a id="withdraw-link" class="menu__item" style="--bgColorItem: #f54343;" href="/deposit">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2" width="35" height="35">
+                        <path d="m37.278 14.519-21.203-2.45a4 4 0 0 0-4.433 3.514l-.763 6.606" style="fill:none;stroke:#222a33;stroke-width:3px"/>
+                        <path d="m15.001 20.404.322-2.782a1.867 1.867 0 0 1 2.069-1.641l2.976.344M53.202 19.117a4.001 4.001 0 0 0-4.609-3.28l-38.149 6.425a4.001 4.001 0 0 0-3.28 4.609l3.634 21.575a4 4 0 0 0 4.609 3.28l38.149-6.425a4.003 4.003 0 0 0 3.28-4.609l-3.634-21.575z" style="fill:none;stroke:#222a33;stroke-width:3px"/>
+                        <path d="m19.474 47.253-2.823.476a1.999 1.999 0 0 1-2.305-1.64l-.443-2.632m30.623-23.148 2.823-.475a1.998 1.998 0 0 1 2.305 1.64l.443 2.631m-38.365 6.462-.443-2.632a1.999 1.999 0 0 1 1.64-2.304l2.823-.476M52.268 36.996l.443 2.631a1.999 1.999 0 0 1-1.64 2.305l-2.823.475M33.221 29.788A2.334 2.334 0 1 0 32 33.781a2.336 2.336 0 0 1 2.69 1.914 2.336 2.336 0 0 1-3.911 2.079M31.225 29.177l-.311-1.841M33.086 40.226l-.311-1.841" style="fill:none;stroke:#222a33;stroke-width:3px"/>
+                    </svg>
+                    <span class="menu__label">Deposit</span>
+                </a>
+                <div class="menu__border"></div>
+            </menu>
+            <script>
+                async function getUserIdFromSession() {
+                    try {
+                        const response = await fetch('/api/get-session-user-id');
+                        const data = await response.json();
+
+                        if (data.userId) {
+                            return data.userId; // Return user ID from session
+                        } else {
+                            console.error('Failed to get user ID from session');
+                            return null;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user ID from session:', error);
+                        return null;
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', async () => {
+                    const userId = await getUserIdFromSession();
+
+                    try {
+                        // Fetch user's claimed tasks
+                        const claimedTasksResponse = await fetch(`/api/user/${userId}/claimed-tasks`);
+                        const claimedTasksData = await claimedTasksResponse.json();
+                        const claimedTasks = claimedTasksData.success ? claimedTasksData.claimedTasks : [];
+
+                        // Fetch tasks from server
+                        const tasksResponse = await fetch('/api/tasks');
+                        const tasksData = await tasksResponse.json();
+
+                        if (tasksData.success && tasksData.tasks) {
+                            const categoryContainer = document.getElementById('category-container');
+                            const categories = {};
+
+                            // Group tasks by category
+                            tasksData.tasks.forEach(task => {
+                                if (!categories[task.category]) {
+                                    categories[task.category] = [];
+                                }
+                                categories[task.category].push(task);
+                            });
+
+                            // Create category sections
+                            Object.keys(categories).forEach(category => {
+                                const categoryDiv = document.createElement('div');
+                                categoryDiv.className = 'category';
+
+                                const categoryHeader = document.createElement('div');
+                                categoryHeader.className = 'category-header';
+                                categoryHeader.textContent = category;
+
+                                const categoryContent = document.createElement('ol');
+                                categoryContent.className = 'gradient-list category-content';
+
+                                categories[category].forEach(task => {
+                                    const isClaimed = claimedTasks.includes(task.taskId);
+
+                                    const li = document.createElement('li');
+                                    li.innerHTML = `
+                                        ${task.title} <span class="reward">${task.reward} LTR </span>
+                                        <a href="#" class="btn ${isClaimed ? 'claimed' : ''}" data-url="${task.url}" data-task-id="${task.taskId}" onclick="${isClaimed ? 'return false;' : 'startTimer(event, this)'}" target="_blank" aria-label="Open task URL">
+                                            ${isClaimed ? `
+                                                <svg width="40" height="40" fill="#4CAF50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                                    <path d="M9 16.172l-4.586-4.586 1.414-1.414L9 13.344l9.172-9.172 1.414 1.414z"></path>
+                                                </svg>` : `
+                                                <svg class="arrow" width="40" height="40" fill="#0092E4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1.218 19l-1.782-1.75 5.25-5.25-5.25-5.25 1.782-1.75 6.968 7-6.968 7z"></path>
+                                                </svg>`}
+                                            <span class="timer hidden">10</span>
+                                        </a>
+                                        ${isClaimed ? '' : `<button class="claim-btn hidden" onclick="claimReward('${userId}', '${task.taskId}')" aria-label="Claim reward">Claim</button>`}
+                                    `;
+                                    categoryContent.appendChild(li);
+                                });
+
+                                categoryDiv.appendChild(categoryHeader);
+                                categoryDiv.appendChild(categoryContent);
+                                categoryContainer.appendChild(categoryDiv);
+                            });
+
+                            // Add click event for category headers
+                            document.querySelectorAll('.category-header').forEach(header => {
+                                header.addEventListener('click', function() {
+                                    this.classList.toggle('active');
+                                    const content = this.nextElementSibling;
+                                    content.classList.toggle('show');
+                                });
+                            });
+                        } else {
+                            document.getElementById('category-container').innerHTML = '<div>No tasks available.</div>';
+                        }
+                    } catch (error) {
+                        console.error('Error fetching tasks:', error);
+                        document.getElementById('category-container').innerHTML = '<div>Error loading tasks.</div>';
+                    }
+                });
+
+                function startTimer(event, element) {
+                    event.preventDefault(); // Prevent default behavior of the link
+                    const url = element.getAttribute('data-url');
+
+                    // Open the URL in a new tab
+                    window.open(url, '_blank');
+
+                    // Start the timer in the current tab
+                    const arrow = element.querySelector('.arrow');
+                    const timer = element.querySelector('.timer');
+                    const claimBtn = element.nextElementSibling; // The claim button
+
+                    // Hide arrow and show timer
+                    arrow.classList.add('hidden');
+                    timer.classList.remove('hidden');
+
+                    let timeLeft = 10;
+                    const timerInterval = setInterval(() => {
+                        timeLeft--;
+                        timer.textContent = timeLeft;
+
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            timer.classList.add('hidden');
+                            claimBtn.classList.remove('hidden');
+                            element.classList.add('hidden'); // Hide the arrow button
+                        }
+                    }, 1000);
+
+                    // Disable button during timer
+                    element.classList.add('disabled');
+                    element.setAttribute('aria-disabled', 'true');
+                }
+
+                async function claimReward(userId, taskId) {
+                    try {
+                        const response = await fetch('/claim-task', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ userId, taskId }),
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            alert(`Task claimed successfully! New balance: ${result.balance}`);
+                            // Refresh the task list or update UI
+                            location.reload();
+                        } else {
+                            alert(`Failed to claim task: ${result.message}`);
+                        }
+                    } catch (error) {
+                        console.error('Error claiming task:', error);
+                        alert('An error occurred while claiming the task.');
+                    }
+                }
+            </script>
+        </body>
+        </html>

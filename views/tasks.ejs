@@ -1,0 +1,198 @@
+                                        <!DOCTYPE html>
+                                        <html lang="en">
+                                        <head>
+                                            <meta charset="UTF-8">
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                            <title>Tasks</title>
+                                            <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS file -->
+                                            <style>
+                                                /* Include the CSS styles you provided earlier here or in an external file */
+                                                .category {
+                                                    margin: 1em 0;
+                                                }
+                                                .category h2 {
+                                                    cursor: pointer;
+                                                    background-color: #f1f1f1;
+                                                    padding: 0.5em;
+                                                    margin: 0;
+                                                }
+                                                .tasks {
+                                                    display: none;
+                                                    margin-left: 1em;
+                                                }
+                                                .task-item {
+                                                    display: flex;
+                                                    justify-content: space-between;
+                                                    align-items: center;
+                                                    padding: 0.5em 0;
+                                                    border-bottom: 1px solid #ddd;
+                                                }
+                                                .reward {
+                                                    margin: 0 1em;
+                                                }
+                                                .btn.disabled {
+                                                    pointer-events: none;
+                                                    opacity: 0.6;
+                                                }
+                                                .arrow, .timer, .claim-btn {
+                                                    display: inline-block;
+                                                }
+                                                .hidden {
+                                                    display: none;
+                                                }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <main style="width: 100%;">
+                                                <% if (tasks && Array.isArray(tasks) && tasks.length > 0) { %>
+                                                    <% tasks.forEach(category => { %>
+                                                        <% if (category && category.tasks && Array.isArray(category.tasks) && category.tasks.length > 0) { %>
+                                                            <div class="category">
+                                                                <h2 onclick="toggleCategory(this)"><%= category.name %></h2>
+                                                                <div class="tasks">
+                                                                    <% category.tasks.forEach(task => { %>
+                                                                        <div class="task-item">
+                                                                            <span><%= task.title %></span>
+                                                                            <span class="reward"><%= task.reward %> NOR</span>
+                                                                            <a href="#" class="btn" data-url="<%= task.url %>" data-task-id="<%= task.taskId %>" onclick="startTimer(event, this)" target="_blank" aria-label="Open task URL">
+                                                                                <span class="arrow">
+                                                                                    <svg width="40" height="40" fill="#0092E4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                                                                        <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1.218 19l-1.782-1.75 5.25-5.25-5.25-5.25 1.782-1.75 6.968 7-6.968 7z"></path>
+                                                                                    </svg>
+                                                                                </span>
+                                                                                <span class="timer hidden">10</span>
+                                                                            </a>
+                                                                            <button class="claim-btn hidden" onclick="claimReward('<%= userId %>', '<%= task.taskId %>')" aria-label="Claim reward">Claim</button>
+                                                                        </div>
+                                                                    <% }); %>
+                                                                </div>
+                                                            </div>
+                                                        <% } %>
+                                                    <% }); %>
+                                                <% } else { %>
+                                                    <p>No tasks available.</p>
+                                                <% } %>
+                                            </main>
+
+                                            <script>
+                                                async function getUserIdFromSession() {
+                                                    try {
+                                                        const response = await fetch('/api/get-session-user-id');
+                                                        const data = await response.json();
+
+                                                        if (data.userId) {
+                                                            return data.userId; // Return user ID from session
+                                                        } else {
+                                                            console.error('Failed to get user ID from session');
+                                                            return null;
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error fetching user ID from session:', error);
+                                                        return null;
+                                                    }
+                                                }
+
+                                                document.addEventListener('DOMContentLoaded', async () => {
+                                                    const userId = await getUserIdFromSession(); 
+
+                                                    if (!userId) {
+                                                        console.error('No user ID found');
+                                                        return;
+                                                    }
+
+                                                    try {
+                                                        // Fetch user's claimed tasks
+                                                        const claimedTasksResponse = await fetch(`/api/user/${userId}/claimed-tasks`);
+                                                        const claimedTasksData = await claimedTasksResponse.json();
+                                                        const claimedTasks = claimedTasksData.success ? claimedTasksData.claimedTasks || [] : [];
+
+                                                        // Fetch tasks from server
+                                                        const tasksResponse = await fetch('/tasks'); // Fetch tasks from the updated endpoint
+                                                        const tasksData = await tasksResponse.json();
+
+                                                        if (tasksData && tasksData.length > 0) {
+                                                            const taskItems = document.querySelectorAll('.task-item');
+                                                            taskItems.forEach(taskItem => {
+                                                                const taskId = taskItem.querySelector('.btn').getAttribute('data-task-id');
+                                                                const isClaimed = claimedTasks.includes(taskId);
+
+                                                                if (isClaimed) {
+                                                                    taskItem.querySelector('.arrow').classList.add('hidden');
+                                                                    taskItem.querySelector('.timer').classList.add('hidden');
+                                                                    taskItem.querySelector('.claim-btn').classList.remove('hidden');
+                                                                }
+                                                            });
+                                                        } else {
+                                                            document.querySelector('main').innerHTML = '<p>Error loading tasks.</p>';
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error fetching tasks:', error);
+                                                        document.querySelector('main').innerHTML = '<p>Error loading tasks.</p>';
+                                                    }
+                                                });
+
+                                                function toggleCategory(element) {
+                                                    const tasks = element.nextElementSibling;
+                                                    if (tasks.style.display === 'none' || tasks.style.display === '') {
+                                                        tasks.style.display = 'block';
+                                                    } else {
+                                                        tasks.style.display = 'none';
+                                                    }
+                                                }
+
+                                                function startTimer(event, element) {
+                                                    event.preventDefault(); // Prevent default behavior of the link
+                                                    const url = element.getAttribute('data-url');
+
+                                                    // Open the URL in a new tab
+                                                    window.open(url, '_blank');
+
+                                                    // Start the timer in the current tab
+                                                    const arrow = element.querySelector('.arrow');
+                                                    const timer = element.querySelector('.timer');
+                                                    const claimBtn = element.nextElementSibling; // The claim button
+
+                                                    // Hide arrow and show timer
+                                                    arrow.classList.add('hidden');
+                                                    timer.classList.remove('hidden');
+
+                                                    let timeLeft = 10;
+                                                    const timerInterval = setInterval(() => {
+                                                        timeLeft--;
+                                                        timer.textContent = timeLeft;
+
+                                                        if (timeLeft <= 0) {
+                                                            clearInterval(timerInterval);
+                                                            timer.classList.add('hidden');
+                                                            claimBtn.classList.remove('hidden');
+                                                            element.classList.add('disabled'); // Disable the link during timer
+                                                        }
+                                                    }, 1000);
+                                                }
+
+                                                async function claimReward(userId, taskId) {
+                                                    try {
+                                                        const response = await fetch('/claim-task', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                            },
+                                                            body: JSON.stringify({ userId, taskId }),
+                                                        });
+
+                                                        const result = await response.json();
+                                                        if (result.success) {
+                                                            alert(`Task claimed successfully! New balance: ${result.balance}`);
+                                                            // Refresh the task list or update UI
+                                                            location.reload();
+                                                        } else {
+                                                            alert(`Failed to claim task: ${result.message}`);
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error claiming task:', error);
+                                                        alert('An error occurred while claiming the task.');
+                                                    }
+                                                }
+                                            </script>
+                                        </body>
+                                        </html>
