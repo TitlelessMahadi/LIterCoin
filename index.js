@@ -992,51 +992,56 @@ app.get('/error', (req, res) => {
 
 
 
-
 app.post('/claim-task', async (req, res) => {
     const { userId, taskId } = req.body;
 
+    // Validate input data
     if (!userId || !taskId) {
         return res.status(400).json({ success: false, message: 'Missing userId or taskId' });
     }
 
     try {
-        // Log values for debugging
-        console.log('Looking for taskId:', taskId);
+        // Convert taskId to a number for consistent handling
+        const taskIdNumber = Number(taskId);
+
+        console.log('Looking for taskId:', taskIdNumber);
         console.log('Looking for userId:', userId);
 
-        // Convert taskId to a number or string as needed
-        const task = await Task.findOne({ taskId: Number(taskId) });
+        // Find the task by taskId
+        const task = await Task.findOne({ taskId: taskIdNumber });
         if (!task) {
-            console.log('Task not found for taskId:', taskId);
+            console.log('Task not found for taskId:', taskIdNumber);
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
-        // Find user by userId
+        // Find the user by userId
         const user = await User.findOne({ userId: userId.toString() });
         if (!user) {
             console.log('User not found for userId:', userId);
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Check if the task has already been claimed
-        if (user.claimedTasks.includes(taskId)) {
+        // Check if the task has already been claimed by the user
+        if (user.claimedTasks.includes(taskIdNumber)) {
             return res.status(400).json({ success: false, message: 'Task already claimed' });
         }
 
-        // Add reward to user's balance
+        // Update user's balance with the task reward
         user.taskRefBalance += task.reward;
 
-        // Track claimed tasks
-        user.claimedTasks.push(taskId);
+        // Add the taskId to the user's claimed tasks
+        user.claimedTasks.push(taskIdNumber);
         await user.save();
 
-        res.json({ success: true, balance: user.balance });
+        console.log(`Task ${taskIdNumber} claimed by user ${userId}. New balance: ${user.taskRefBalance}`);
+
+        res.json({ success: true, balance: user.taskRefBalance });
     } catch (error) {
         console.error('Error claiming task:', error.message);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
 
 
 app.get('/api/user/:userId/claimed-tasks', async (req, res) => {
