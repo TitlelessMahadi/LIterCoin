@@ -147,7 +147,6 @@ const Withdrawal = mongoose.model('Withdrawal', withdrawalSchema);
 const taskSchema = new mongoose.Schema({
     title: { type: String, required: true },
     reward: { type: Number, required: true },
-    amount: { type: Number, required: true },
     url: { type: String, required: true },
     taskId: { type: Number, required: true },
     category: { type: String, required: true }// Added taskId field
