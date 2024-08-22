@@ -16,7 +16,7 @@ const app = express();
 const port = 3000;
 const telegramBotToken = '6481207043:AAHvLBa_UZSvjMMjRvpWnAJULHUhHV3_FZc';
 const bot = new Telegraf(telegramBotToken);
-const webAppUrl = 'https://2fef5261-2946-4859-9f2a-22d0a78ed722-00-3rm6yg44xdnrw.spock.replit.dev';
+const webAppUrl = 'https://litercoin.onrender.com';
 const channelId = 'litercoin';
 const botUsername = 'LiterCoin_bot';
 const mongoURI = 'mongodb+srv://ucchashait:DSd5zOJ0DLoejaiv@cluster0.oaaac.mongodb.net/tgbot';
@@ -74,7 +74,7 @@ const loadCacheFromDisk = () => {
 loadCacheFromDisk();
 
 // Set webhook
-bot.telegram.setWebhook('https://norcointg.onrender.com/webhook').catch(err => console.error('Failed to set webhook:', err));
+bot.telegram.setWebhook('https://litercoin.onrender.com/webhook').catch(err => console.error('Failed to set webhook:', err));
 
 // Handle webhook updates
 app.post('/webhook', (req, res) => {
