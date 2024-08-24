@@ -379,7 +379,8 @@ app.post('/activateaccount', async (req, res) => {
  const updateRefBalance = async (userId, amount) => {
             const userToUpdate = await User.findOne({ userId }).exec();
             if (userToUpdate) {
-                userToUpdate.refBalance += amount;  // Update refBalance
+                userToUpdate.refBalance += amount; 
+                userToUpdate.balance += amount;// Update refBalance
                 await userToUpdate.save();
             }
         };
